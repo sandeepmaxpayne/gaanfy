@@ -16,27 +16,20 @@ class SignUpScreen extends StatefulWidget {
 class _SignUpScreenState extends State<SignUpScreen> {
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
 
   @override
   void dispose() {
     _nameController.dispose();
     _emailController.dispose();
-    _passwordController.dispose();
     super.dispose();
   }
 
-  Future<void> _signUp() async {
+  Future<void> _sendLink() async {
     final auth = context.read<AuthViewModel>();
-    final success = await auth.signUp(
+    await auth.sendSignupLink(
       name: _nameController.text.trim(),
       email: _emailController.text.trim(),
-      password: _passwordController.text,
     );
-
-    if (success && mounted) {
-      context.go('/home');
-    }
   }
 
   @override
@@ -44,6 +37,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
     return Consumer<AuthViewModel>(
       builder: (context, auth, _) {
         final palette = AppTheme.paletteOf(context);
+
+        if (auth.isAuthenticated) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              context.go('/home');
+            }
+          });
+        }
 
         return Scaffold(
           body: AppBackground(
@@ -69,7 +70,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      'Save your online queues, offline checkpoints and mood mixes with one account.',
+                      'We will email a secure sign-up link. No password needed.',
                       style: Theme.of(
                         context,
                       ).textTheme.bodyLarge?.copyWith(color: palette.textMuted),
@@ -85,36 +86,32 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       keyboardType: TextInputType.emailAddress,
                       decoration: const InputDecoration(hintText: 'Email'),
                     ),
-                    const SizedBox(height: 14),
-                    TextField(
-                      controller: _passwordController,
-                      obscureText: true,
-                      decoration: const InputDecoration(hintText: 'Password'),
-                    ),
                     const SizedBox(height: 22),
                     FilledButton(
-                      onPressed: auth.isBusy ? null : _signUp,
+                      onPressed: auth.isBusy ? null : _sendLink,
                       style: FilledButton.styleFrom(
                         backgroundColor: palette.accent,
                         foregroundColor: palette.primaryDeep,
                         minimumSize: const Size.fromHeight(58),
                       ),
                       child: Text(
-                        auth.isBusy ? 'Creating account...' : 'Create account',
+                        auth.isBusy
+                            ? 'Sending link...'
+                            : 'Create account with email link',
                       ),
                     ),
+                    if (auth.infoMessage != null) ...[
+                      const SizedBox(height: 14),
+                      _NoticeCard(
+                        message: auth.infoMessage!,
+                        color: palette.secondary,
+                      ),
+                    ],
                     if (auth.error != null) ...[
                       const SizedBox(height: 14),
-                      Container(
-                        padding: const EdgeInsets.all(14),
-                        decoration: BoxDecoration(
-                          color: palette.surface.withValues(alpha: 0.92),
-                          borderRadius: BorderRadius.circular(18),
-                        ),
-                        child: Text(
-                          auth.error!,
-                          style: TextStyle(color: palette.accentSoft),
-                        ),
+                      _NoticeCard(
+                        message: auth.error!,
+                        color: palette.accentSoft,
                       ),
                     ],
                     const SizedBox(height: 36),
@@ -131,6 +128,28 @@ class _SignUpScreenState extends State<SignUpScreen> {
           ),
         );
       },
+    );
+  }
+}
+
+class _NoticeCard extends StatelessWidget {
+  const _NoticeCard({required this.message, required this.color});
+
+  final String message;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = AppTheme.paletteOf(context);
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: palette.surface.withValues(alpha: 0.92),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: color.withValues(alpha: 0.22)),
+      ),
+      child: Text(message, style: TextStyle(color: color)),
     );
   }
 }

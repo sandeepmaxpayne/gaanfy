@@ -17,25 +17,16 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
 
   @override
   void dispose() {
     _emailController.dispose();
-    _passwordController.dispose();
     super.dispose();
   }
 
-  Future<void> _login() async {
+  Future<void> _sendLink() async {
     final auth = context.read<AuthViewModel>();
-    final success = await auth.signIn(
-      email: _emailController.text.trim(),
-      password: _passwordController.text,
-    );
-
-    if (success && mounted) {
-      context.go('/home');
-    }
+    await auth.sendLoginLink(email: _emailController.text.trim());
   }
 
   @override
@@ -43,6 +34,14 @@ class _LoginScreenState extends State<LoginScreen> {
     return Consumer<AuthViewModel>(
       builder: (context, auth, _) {
         final palette = AppTheme.paletteOf(context);
+
+        if (auth.isAuthenticated) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              context.go('/home');
+            }
+          });
+        }
 
         return Scaffold(
           body: AppBackground(
@@ -68,7 +67,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      'A darker, richer listening space with forest green depth and warm amber highlights.',
+                      'Enter your email and we will send a passwordless sign-in link, following the Firebase email-link flow.',
                       style: Theme.of(
                         context,
                       ).textTheme.bodyLarge?.copyWith(color: palette.textMuted),
@@ -88,21 +87,26 @@ class _LoginScreenState extends State<LoginScreen> {
                         hintText: 'you@example.com',
                       ),
                     ),
-                    const SizedBox(height: 16),
-                    TextField(
-                      controller: _passwordController,
-                      obscureText: true,
-                      decoration: const InputDecoration(hintText: 'Password'),
-                    ),
                     const SizedBox(height: 22),
                     FilledButton(
-                      onPressed: auth.isBusy ? null : _login,
+                      onPressed: auth.isBusy ? null : _sendLink,
                       style: FilledButton.styleFrom(
                         backgroundColor: palette.accent,
                         foregroundColor: palette.primaryDeep,
                         minimumSize: const Size.fromHeight(58),
                       ),
-                      child: Text(auth.isBusy ? 'Signing in...' : 'Continue'),
+                      child: Text(
+                        auth.isBusy
+                            ? 'Sending link...'
+                            : 'Email me a sign-in link',
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+                    Text(
+                      'Open the email on this same device to complete sign-in automatically.',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: palette.textMuted,
+                      ),
                     ),
                     const SizedBox(height: 22),
                     Center(
@@ -123,8 +127,12 @@ class _LoginScreenState extends State<LoginScreen> {
                       label: 'Continue with Google',
                       badgeText: 'G',
                       badgeColor: const Color(0xFFFFB703),
-                      onTap: () =>
-                          auth.showUnavailableProviderMessage('Google'),
+                      onTap: () async {
+                        final success = await auth.signInWithGoogle();
+                        if (success && context.mounted) {
+                          context.go('/home');
+                        }
+                      },
                     ),
                     const SizedBox(height: 12),
                     AuthOptionButton(
@@ -137,33 +145,37 @@ class _LoginScreenState extends State<LoginScreen> {
                     AuthOptionButton(
                       label: 'Continue with Apple',
                       icon: Icons.apple_rounded,
-                      onTap: () => auth.showUnavailableProviderMessage('Apple'),
-                    ),
-                    const SizedBox(height: 16),
-                    TextButton(
-                      onPressed: () async {
-                        await auth.continueAsGuest();
-                        if (context.mounted) {
+                      onTap: () async {
+                        final success = await auth.signInWithApple();
+                        if (success && context.mounted) {
                           context.go('/home');
                         }
                       },
+                    ),
+                    const SizedBox(height: 16),
+                    TextButton(
+                      onPressed: auth.isBusy
+                          ? null
+                          : () async {
+                              await auth.continueAsGuest();
+                              if (context.mounted) {
+                                context.go('/home');
+                              }
+                            },
                       child: const Text('Continue in demo mode'),
                     ),
+                    if (auth.infoMessage != null) ...[
+                      const SizedBox(height: 10),
+                      _NoticeCard(
+                        message: auth.infoMessage!,
+                        color: palette.secondary,
+                      ),
+                    ],
                     if (auth.error != null) ...[
                       const SizedBox(height: 10),
-                      Container(
-                        padding: const EdgeInsets.all(14),
-                        decoration: BoxDecoration(
-                          color: palette.surface.withValues(alpha: 0.92),
-                          borderRadius: BorderRadius.circular(18),
-                          border: Border.all(
-                            color: palette.accent.withValues(alpha: 0.22),
-                          ),
-                        ),
-                        child: Text(
-                          auth.error!,
-                          style: TextStyle(color: palette.accentSoft),
-                        ),
+                      _NoticeCard(
+                        message: auth.error!,
+                        color: palette.accentSoft,
                       ),
                     ],
                     const SizedBox(height: 36),
@@ -193,6 +205,28 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         );
       },
+    );
+  }
+}
+
+class _NoticeCard extends StatelessWidget {
+  const _NoticeCard({required this.message, required this.color});
+
+  final String message;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = AppTheme.paletteOf(context);
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: palette.surface.withValues(alpha: 0.92),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: color.withValues(alpha: 0.22)),
+      ),
+      child: Text(message, style: TextStyle(color: color)),
     );
   }
 }
