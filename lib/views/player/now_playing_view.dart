@@ -5,6 +5,7 @@ import '../../core/enums/playback_source.dart';
 import '../../core/theme/app_theme.dart';
 import '../../services/playback_service.dart';
 import '../../widgets/app_background.dart';
+import '../../widgets/song_experience_panel.dart';
 
 class NowPlayingView extends StatelessWidget {
   const NowPlayingView({
@@ -47,44 +48,9 @@ class NowPlayingView extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         const SizedBox(height: 20),
-                        Container(
-                          height: 330,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(36),
-                            gradient: LinearGradient(
-                              colors: [
-                                accentColor,
-                                accentColor.withValues(alpha: 0.45),
-                                palette.surface,
-                              ],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: accentColor.withValues(alpha: 0.16),
-                                blurRadius: 28,
-                                offset: const Offset(0, 18),
-                              ),
-                            ],
-                          ),
-                          child: Center(
-                            child: Container(
-                              width: 170,
-                              height: 170,
-                              decoration: BoxDecoration(
-                                color: Colors.black.withValues(alpha: 0.35),
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: Colors.white.withValues(alpha: 0.12),
-                                ),
-                              ),
-                              child: const Icon(
-                                Icons.graphic_eq_rounded,
-                                size: 86,
-                              ),
-                            ),
-                          ),
+                        SongExperiencePanel(
+                          song: song,
+                          accentColor: accentColor,
                         ),
                         const SizedBox(height: 26),
                         Text(

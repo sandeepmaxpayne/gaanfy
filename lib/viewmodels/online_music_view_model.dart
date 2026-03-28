@@ -64,8 +64,10 @@ class OnlineMusicViewModel extends ChangeNotifier {
   }
 
   Future<void> playFromSection(List<Song> songs, Song selectedSong) async {
-    final index = songs.indexWhere((song) => song.id == selectedSong.id);
-    await playback.playSongs(songs, startIndex: index < 0 ? 0 : index);
+    await playback.playSelectedSong(
+      selectedSong: selectedSong,
+      queueSongs: songs,
+    );
   }
 
   @override

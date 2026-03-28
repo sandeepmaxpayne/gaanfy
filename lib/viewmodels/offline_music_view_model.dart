@@ -46,11 +46,7 @@ class OfflineMusicViewModel extends ChangeNotifier {
   }
 
   Future<void> playSong(Song song) async {
-    final index = _songs.indexWhere((item) => item.id == song.id);
-    if (index < 0) {
-      return;
-    }
-    await playback.playSongs(_songs, startIndex: index);
+    await playback.playSelectedSong(selectedSong: song, queueSongs: _songs);
   }
 
   @override

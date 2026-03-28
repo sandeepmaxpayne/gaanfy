@@ -81,13 +81,20 @@ class PlaybackService extends ChangeNotifier {
     int startIndex = 0,
     bool autoPlay = true,
   }) async {
+    final playableSongs = songs.where((song) => _isPlayable(song)).toList();
+    if (playableSongs.isEmpty) {
+      return;
+    }
+
+    final safeIndex = startIndex.clamp(0, playableSongs.length - 1);
+
     _queue
       ..clear()
-      ..addAll(songs);
+      ..addAll(playableSongs);
 
     await _player.setAudioSources(
-      songs.map(_toAudioSource).toList(),
-      initialIndex: startIndex,
+      playableSongs.map(_toAudioSource).toList(),
+      initialIndex: safeIndex,
       initialPosition: Duration.zero,
     );
 
@@ -96,6 +103,39 @@ class PlaybackService extends ChangeNotifier {
     }
     await _persistCheckpoint();
     notifyListeners();
+  }
+
+  Future<void> playSelectedSong({
+    required Song selectedSong,
+    required List<Song> queueSongs,
+    bool autoPlay = true,
+  }) async {
+    final playableSongs = queueSongs
+        .where((song) => _isPlayable(song))
+        .toList();
+    if (playableSongs.isEmpty) {
+      return;
+    }
+
+    final selectedIndex = playableSongs.indexWhere(
+      (song) => _isSameSong(song, selectedSong),
+    );
+
+    if (selectedIndex >= 0) {
+      await playSongs(
+        playableSongs,
+        startIndex: selectedIndex,
+        autoPlay: autoPlay,
+      );
+      return;
+    }
+
+    final rebuiltQueue = <Song>[
+      selectedSong,
+      ...playableSongs.where((song) => !_isSameSong(song, selectedSong)),
+    ];
+
+    await playSongs(rebuiltQueue, startIndex: 0, autoPlay: autoPlay);
   }
 
   Future<void> togglePlayPause() async {
@@ -204,6 +244,33 @@ class PlaybackService extends ChangeNotifier {
       return AudioSource.file(song.filePath!, tag: song);
     }
     return AudioSource.uri(Uri.parse(song.streamUrl), tag: song);
+  }
+
+  bool _isPlayable(Song song) {
+    if (song.isOffline) {
+      return song.filePath != null && song.filePath!.isNotEmpty;
+    }
+    return song.streamUrl.isNotEmpty;
+  }
+
+  bool _isSameSong(Song left, Song right) {
+    if (left.id.isNotEmpty && right.id.isNotEmpty && left.id == right.id) {
+      return true;
+    }
+    if (left.streamUrl.isNotEmpty &&
+        right.streamUrl.isNotEmpty &&
+        left.streamUrl == right.streamUrl) {
+      return true;
+    }
+    if (left.filePath != null &&
+        right.filePath != null &&
+        left.filePath == right.filePath) {
+      return true;
+    }
+
+    return left.title.toLowerCase() == right.title.toLowerCase() &&
+        left.artist.toLowerCase() == right.artist.toLowerCase() &&
+        left.album.toLowerCase() == right.album.toLowerCase();
   }
 
   @override
