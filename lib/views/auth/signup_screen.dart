@@ -43,6 +43,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
   Widget build(BuildContext context) {
     return Consumer<AuthViewModel>(
       builder: (context, auth, _) {
+        final palette = AppTheme.paletteOf(context);
+
         return Scaffold(
           body: AppBackground(
             child: SingleChildScrollView(
@@ -68,9 +70,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     const SizedBox(height: 12),
                     Text(
                       'Save your online queues, offline checkpoints and mood mixes with one account.',
-                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: AppTheme.textMuted,
-                      ),
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodyLarge?.copyWith(color: palette.textMuted),
                     ),
                     const SizedBox(height: 28),
                     TextField(
@@ -93,8 +95,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     FilledButton(
                       onPressed: auth.isBusy ? null : _signUp,
                       style: FilledButton.styleFrom(
-                        backgroundColor: AppTheme.primaryGreen,
-                        foregroundColor: Colors.black,
+                        backgroundColor: palette.accent,
+                        foregroundColor: palette.primaryDeep,
                         minimumSize: const Size.fromHeight(58),
                       ),
                       child: Text(
@@ -106,10 +108,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       Container(
                         padding: const EdgeInsets.all(14),
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.04),
+                          color: palette.surface.withValues(alpha: 0.92),
                           borderRadius: BorderRadius.circular(18),
                         ),
-                        child: Text(auth.error!),
+                        child: Text(
+                          auth.error!,
+                          style: TextStyle(color: palette.accentSoft),
+                        ),
                       ),
                     ],
                     const SizedBox(height: 36),

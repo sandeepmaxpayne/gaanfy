@@ -2,15 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+import '../../core/theme/app_theme.dart';
 import '../../viewmodels/auth_view_model.dart';
+import '../../viewmodels/theme_view_model.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<AuthViewModel>(
-      builder: (context, auth, _) {
+    return Consumer2<AuthViewModel, ThemeViewModel>(
+      builder: (context, auth, themeVm, _) {
+        final palette = AppTheme.paletteOf(context);
+
         return ListView(
           padding: const EdgeInsets.only(top: 10, bottom: 20),
           children: [
@@ -25,7 +29,14 @@ class ProfileScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(22),
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.04),
+                gradient: LinearGradient(
+                  colors: [
+                    palette.surface,
+                    palette.primaryDeep.withValues(alpha: 0.88),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
                 borderRadius: BorderRadius.circular(28),
               ),
               child: Column(
@@ -33,16 +44,15 @@ class ProfileScreen extends StatelessWidget {
                 children: [
                   CircleAvatar(
                     radius: 34,
-                    backgroundColor: const Color(
-                      0xFF1ED760,
-                    ).withValues(alpha: 0.18),
+                    backgroundColor: palette.accent.withValues(alpha: 0.2),
                     child: Text(
                       auth.displayName.isEmpty
                           ? 'G'
                           : auth.displayName.characters.first.toUpperCase(),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.w800,
+                        color: palette.glow,
                       ),
                     ),
                   ),
@@ -56,9 +66,61 @@ class ProfileScreen extends StatelessWidget {
                   const SizedBox(height: 6),
                   Text(
                     auth.user?.email ?? 'Demo mode enabled',
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: Colors.white.withValues(alpha: 0.66),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodyLarge?.copyWith(color: palette.textMuted),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 18),
+            Container(
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                color: palette.surface.withValues(alpha: 0.9),
+                borderRadius: BorderRadius.circular(22),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [palette.primary, palette.accent],
+                      ),
+                      borderRadius: BorderRadius.circular(16),
                     ),
+                    child: Icon(
+                      themeVm.isDarkMode
+                          ? Icons.dark_mode_rounded
+                          : Icons.light_mode_rounded,
+                      color: palette.primaryDeep,
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Dark mode',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w800,
+                            fontSize: 17,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Forest-night styling inspired by Color Hunt green palettes and your reference screen.',
+                          style: TextStyle(color: palette.textMuted),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Switch.adaptive(
+                    value: themeVm.isDarkMode,
+                    onChanged: themeVm.setDarkMode,
                   ),
                 ],
               ),
@@ -101,10 +163,12 @@ class _InfoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = AppTheme.paletteOf(context);
+
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.04),
+        color: palette.surface.withValues(alpha: 0.9),
         borderRadius: BorderRadius.circular(22),
       ),
       child: Column(
@@ -115,7 +179,7 @@ class _InfoCard extends StatelessWidget {
             style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 18),
           ),
           const SizedBox(height: 8),
-          Text(description),
+          Text(description, style: TextStyle(color: palette.textMuted)),
         ],
       ),
     );

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../core/enums/playback_source.dart';
+import '../core/theme/app_theme.dart';
 import '../services/playback_service.dart';
 
 class MiniPlayer extends StatelessWidget {
@@ -15,6 +16,7 @@ class MiniPlayer extends StatelessWidget {
       animation: playback,
       builder: (context, _) {
         final song = playback.currentSong;
+        final palette = AppTheme.paletteOf(context);
         if (song == null) {
           return const SizedBox.shrink();
         }
@@ -27,9 +29,18 @@ class MiniPlayer extends StatelessWidget {
         return Container(
           margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
           decoration: BoxDecoration(
-            color: const Color(0xFF171A20),
+            color: palette.surface.withValues(alpha: 0.96),
             borderRadius: BorderRadius.circular(22),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+            border: Border.all(
+              color: palette.secondary.withValues(alpha: 0.12),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: palette.primaryDeep.withValues(alpha: 0.22),
+                blurRadius: 22,
+                offset: const Offset(0, 12),
+              ),
+            ],
           ),
           child: Material(
             color: Colors.transparent,
@@ -44,11 +55,11 @@ class MiniPlayer extends StatelessWidget {
                     LinearProgressIndicator(
                       value: progress.clamp(0.0, 1.0),
                       minHeight: 3,
-                      backgroundColor: Colors.white.withValues(alpha: 0.06),
+                      backgroundColor: palette.secondary.withValues(
+                        alpha: 0.08,
+                      ),
                       valueColor: AlwaysStoppedAnimation<Color>(
-                        song.isOffline
-                            ? const Color(0xFF3BC8FF)
-                            : const Color(0xFF1ED760),
+                        song.isOffline ? palette.secondary : palette.accent,
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -61,17 +72,15 @@ class MiniPlayer extends StatelessWidget {
                             borderRadius: BorderRadius.circular(14),
                             gradient: LinearGradient(
                               colors: song.isOffline
-                                  ? const [Color(0xFF245D9B), Color(0xFF2DC7FF)]
-                                  : const [
-                                      Color(0xFF0F7A35),
-                                      Color(0xFF1ED760),
-                                    ],
+                                  ? [palette.primary, palette.secondary]
+                                  : [palette.accent, palette.accentSoft],
                             ),
                           ),
                           child: Icon(
                             song.isOffline
                                 ? Icons.offline_bolt_rounded
                                 : Icons.graphic_eq_rounded,
+                            color: palette.primaryDeep,
                           ),
                         ),
                         const SizedBox(width: 12),
@@ -92,9 +101,7 @@ class MiniPlayer extends StatelessWidget {
                                 '${song.artist} • ${playback.source.label}',
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  color: Colors.white.withValues(alpha: 0.65),
-                                ),
+                                style: TextStyle(color: palette.textMuted),
                               ),
                             ],
                           ),
@@ -107,8 +114,8 @@ class MiniPlayer extends StatelessWidget {
                                 : Icons.play_circle_rounded,
                             size: 34,
                             color: song.isOffline
-                                ? const Color(0xFF3BC8FF)
-                                : const Color(0xFF1ED760),
+                                ? palette.secondary
+                                : palette.accent,
                           ),
                         ),
                       ],

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+import '../../core/theme/app_theme.dart';
 import '../../viewmodels/offline_music_view_model.dart';
 import '../../widgets/song_tile.dart';
 
@@ -12,6 +13,7 @@ class OfflineLibraryScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<OfflineMusicViewModel>(
       builder: (context, vm, _) {
+        final palette = AppTheme.paletteOf(context);
         return RefreshIndicator(
           onRefresh: vm.refresh,
           child: ListView(
@@ -27,15 +29,15 @@ class OfflineLibraryScreen extends StatelessWidget {
               const SizedBox(height: 8),
               Text(
                 'Scan music stored on your device and keep separate offline checkpoints that resume independently from streaming.',
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: Colors.white.withValues(alpha: 0.66),
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyLarge?.copyWith(color: palette.textMuted),
               ),
               const SizedBox(height: 18),
               Container(
                 padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.04),
+                  color: palette.surface.withValues(alpha: 0.9),
                   borderRadius: BorderRadius.circular(24),
                 ),
                 child: Row(
@@ -44,7 +46,9 @@ class OfflineLibraryScreen extends StatelessWidget {
                       width: 54,
                       height: 54,
                       decoration: BoxDecoration(
-                        color: const Color(0xFF3BC8FF).withValues(alpha: 0.18),
+                        gradient: LinearGradient(
+                          colors: [palette.primary, palette.secondary],
+                        ),
                         borderRadius: BorderRadius.circular(18),
                       ),
                       child: const Icon(Icons.offline_bolt_rounded),
@@ -63,9 +67,7 @@ class OfflineLibraryScreen extends StatelessWidget {
                             vm.playback.currentSong == null
                                 ? 'Nothing resumed yet'
                                 : 'Resume ${vm.playback.currentSong!.title}',
-                            style: TextStyle(
-                              color: Colors.white.withValues(alpha: 0.64),
-                            ),
+                            style: TextStyle(color: palette.textMuted),
                           ),
                         ],
                       ),

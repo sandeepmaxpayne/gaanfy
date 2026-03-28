@@ -42,6 +42,8 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Consumer<AuthViewModel>(
       builder: (context, auth, _) {
+        final palette = AppTheme.paletteOf(context);
+
         return Scaffold(
           body: AppBackground(
             child: SingleChildScrollView(
@@ -63,6 +65,13 @@ class _LoginScreenState extends State<LoginScreen> {
                         fontWeight: FontWeight.w800,
                         letterSpacing: -2.2,
                       ),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'A darker, richer listening space with forest green depth and warm amber highlights.',
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodyLarge?.copyWith(color: palette.textMuted),
                     ),
                     const SizedBox(height: 26),
                     Text(
@@ -89,8 +98,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     FilledButton(
                       onPressed: auth.isBusy ? null : _login,
                       style: FilledButton.styleFrom(
-                        backgroundColor: AppTheme.primaryGreen,
-                        foregroundColor: Colors.black,
+                        backgroundColor: palette.accent,
+                        foregroundColor: palette.primaryDeep,
                         minimumSize: const Size.fromHeight(58),
                       ),
                       child: Text(auth.isBusy ? 'Signing in...' : 'Continue'),
@@ -145,15 +154,15 @@ class _LoginScreenState extends State<LoginScreen> {
                       Container(
                         padding: const EdgeInsets.all(14),
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.04),
+                          color: palette.surface.withValues(alpha: 0.92),
                           borderRadius: BorderRadius.circular(18),
                           border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.08),
+                            color: palette.accent.withValues(alpha: 0.22),
                           ),
                         ),
                         child: Text(
                           auth.error!,
-                          style: const TextStyle(color: AppTheme.accentMint),
+                          style: TextStyle(color: palette.accentSoft),
                         ),
                       ),
                     ],
@@ -162,7 +171,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: Text(
                         "Don't have an account?",
                         style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          color: AppTheme.textMuted,
+                          color: palette.textMuted,
                         ),
                       ),
                     ),

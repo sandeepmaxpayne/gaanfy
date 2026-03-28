@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../core/theme/app_theme.dart';
 import '../models/song.dart';
 
 class SongTile extends StatelessWidget {
@@ -16,6 +17,8 @@ class SongTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = AppTheme.paletteOf(context);
+
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 0, vertical: 4),
       onTap: onTap,
@@ -41,6 +44,7 @@ class SongTile extends StatelessWidget {
         song.subtitle,
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
+        style: TextStyle(color: palette.textMuted),
       ),
       trailing:
           trailing ??
@@ -48,9 +52,7 @@ class SongTile extends StatelessWidget {
             song.isOffline
                 ? Icons.folder_rounded
                 : Icons.play_circle_fill_rounded,
-            color: song.isOffline
-                ? const Color(0xFF3BC8FF)
-                : const Color(0xFF1ED760),
+            color: song.isOffline ? palette.secondary : palette.accent,
           ),
     );
   }
@@ -63,14 +65,16 @@ class _FallbackArtwork extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = AppTheme.paletteOf(context);
+
     return Container(
       width: 58,
       height: 58,
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: song.isOffline
-              ? const [Color(0xFF245D9B), Color(0xFF2DC7FF)]
-              : const [Color(0xFF0F7A35), Color(0xFF1ED760)],
+              ? [palette.primary, palette.secondary]
+              : [palette.accent, palette.accentSoft],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -79,7 +83,7 @@ class _FallbackArtwork extends StatelessWidget {
         song.isOffline
             ? Icons.music_note_rounded
             : Icons.wifi_tethering_rounded,
-        color: Colors.white,
+        color: palette.primaryDeep,
       ),
     );
   }

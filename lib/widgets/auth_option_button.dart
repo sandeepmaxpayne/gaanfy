@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../core/theme/app_theme.dart';
+
 class AuthOptionButton extends StatelessWidget {
   const AuthOptionButton({
     super.key,
@@ -18,18 +20,22 @@ class AuthOptionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = AppTheme.paletteOf(context);
+
     return OutlinedButton(
       onPressed: onTap,
       style: OutlinedButton.styleFrom(
         minimumSize: const Size.fromHeight(58),
-        side: BorderSide(color: Colors.white.withValues(alpha: 0.14)),
+        side: BorderSide(color: palette.secondary.withValues(alpha: 0.18)),
+        foregroundColor: Theme.of(context).colorScheme.onSurface,
+        backgroundColor: palette.surface.withValues(alpha: 0.78),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           if (icon != null)
-            Icon(icon, color: Colors.white, size: 22)
+            Icon(icon, color: Theme.of(context).colorScheme.onSurface, size: 22)
           else
             Container(
               width: 24,

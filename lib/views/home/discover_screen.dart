@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+import '../../core/theme/app_theme.dart';
 import '../../models/music_section.dart';
 import '../../models/song.dart';
 import '../../viewmodels/online_music_view_model.dart';
@@ -14,6 +15,7 @@ class DiscoverScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<OnlineMusicViewModel>(
       builder: (context, vm, _) {
+        final palette = AppTheme.paletteOf(context);
         return RefreshIndicator(
           onRefresh: vm.loadDiscover,
           child: ListView(
@@ -29,9 +31,9 @@ class DiscoverScreen extends StatelessWidget {
               const SizedBox(height: 8),
               Text(
                 'Free streaming demo from public song previews, plus checkpointed resume when you come back.',
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: Colors.white.withValues(alpha: 0.66),
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyLarge?.copyWith(color: palette.textMuted),
               ),
               const SizedBox(height: 18),
               _BlendCard(currentSong: vm.playback.currentSong),
@@ -70,15 +72,24 @@ class _BlendCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = AppTheme.paletteOf(context);
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(28),
-        gradient: const LinearGradient(
-          colors: [Color(0xFF1ED760), Color(0xFF0B5323), Color(0xFF07140C)],
+        gradient: LinearGradient(
+          colors: [palette.accentSoft, palette.accent, palette.primaryDeep],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: palette.accent.withValues(alpha: 0.2),
+            blurRadius: 26,
+            offset: const Offset(0, 16),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -86,22 +97,22 @@ class _BlendCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             decoration: BoxDecoration(
-              color: Colors.black.withValues(alpha: 0.18),
+              color: palette.glow.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(16),
             ),
-            child: const Text(
+            child: Text(
               'Unique Mode',
               style: TextStyle(
-                color: Colors.black,
+                color: palette.primaryDeep,
                 fontWeight: FontWeight.w700,
               ),
             ),
           ),
           const SizedBox(height: 14),
-          const Text(
+          Text(
             'Mood blend',
             style: TextStyle(
-              color: Colors.black,
+              color: palette.primaryDeep,
               fontSize: 28,
               fontWeight: FontWeight.w800,
             ),
@@ -111,8 +122,8 @@ class _BlendCard extends StatelessWidget {
             currentSong == null
                 ? 'Jump into curated online previews and keep your exact position saved in SQLite.'
                 : 'Resume your last stream from ${currentSong!.title} instantly.',
-            style: const TextStyle(
-              color: Colors.black87,
+            style: TextStyle(
+              color: palette.primaryDeep.withValues(alpha: 0.88),
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -174,6 +185,7 @@ class _SectionBlock extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final vm = context.read<OnlineMusicViewModel>();
+    final palette = AppTheme.paletteOf(context);
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 24),
@@ -189,9 +201,9 @@ class _SectionBlock extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             section.caption,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Colors.white.withValues(alpha: 0.62),
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: palette.textMuted),
           ),
           const SizedBox(height: 14),
           SizedBox(
@@ -214,8 +226,11 @@ class _SectionBlock extends StatelessWidget {
                     width: 170,
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.04),
+                      color: palette.surface.withValues(alpha: 0.9),
                       borderRadius: BorderRadius.circular(24),
+                      border: Border.all(
+                        color: palette.secondary.withValues(alpha: 0.08),
+                      ),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -232,11 +247,8 @@ class _SectionBlock extends StatelessWidget {
                               height: 120,
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(20),
-                                gradient: const LinearGradient(
-                                  colors: [
-                                    Color(0xFF0F7A35),
-                                    Color(0xFF1ED760),
-                                  ],
+                                gradient: LinearGradient(
+                                  colors: [palette.accent, palette.primary],
                                 ),
                               ),
                               child: const Icon(Icons.music_note_rounded),
@@ -255,9 +267,7 @@ class _SectionBlock extends StatelessWidget {
                           song.artist,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.66),
-                          ),
+                          style: TextStyle(color: palette.textMuted),
                         ),
                         const Spacer(),
                         Row(
@@ -265,7 +275,7 @@ class _SectionBlock extends StatelessWidget {
                             Icon(
                               Icons.wifi_tethering_rounded,
                               size: 16,
-                              color: Colors.white.withValues(alpha: 0.6),
+                              color: palette.accent,
                             ),
                             const SizedBox(width: 6),
                             Expanded(

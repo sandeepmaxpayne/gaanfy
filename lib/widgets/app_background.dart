@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../core/theme/app_theme.dart';
+
 class AppBackground extends StatelessWidget {
   const AppBackground({
     super.key,
@@ -12,12 +14,18 @@ class AppBackground extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = AppTheme.paletteOf(context);
+
     return Container(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFF08120D), Color(0xFF0B0D10), Color(0xFF121722)],
+          colors: [
+            palette.background,
+            palette.primaryDeep.withValues(alpha: 0.94),
+            palette.backgroundAlt,
+          ],
         ),
       ),
       child: Stack(
@@ -26,7 +34,7 @@ class AppBackground extends StatelessWidget {
             top: -80,
             right: -40,
             child: _GlowOrb(
-              color: const Color(0xFF1ED760).withValues(alpha: 0.18),
+              color: palette.primary.withValues(alpha: 0.24),
               size: 220,
             ),
           ),
@@ -34,7 +42,7 @@ class AppBackground extends StatelessWidget {
             bottom: -100,
             left: -60,
             child: _GlowOrb(
-              color: const Color(0xFF3BC8FF).withValues(alpha: 0.12),
+              color: palette.accent.withValues(alpha: 0.16),
               size: 260,
             ),
           ),

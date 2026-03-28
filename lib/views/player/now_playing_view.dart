@@ -29,6 +29,7 @@ class NowPlayingView extends StatelessWidget {
     return AnimatedBuilder(
       animation: playback,
       builder: (context, _) {
+        final palette = AppTheme.paletteOf(context);
         final song = playback.currentSong;
 
         return Scaffold(
@@ -54,11 +55,18 @@ class NowPlayingView extends StatelessWidget {
                               colors: [
                                 accentColor,
                                 accentColor.withValues(alpha: 0.45),
-                                AppTheme.panel,
+                                palette.surface,
                               ],
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
                             ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: accentColor.withValues(alpha: 0.16),
+                                blurRadius: 28,
+                                offset: const Offset(0, 18),
+                              ),
+                            ],
                           ),
                           child: Center(
                             child: Container(
@@ -88,15 +96,13 @@ class NowPlayingView extends StatelessWidget {
                         Text(
                           song.subtitle,
                           style: Theme.of(context).textTheme.bodyLarge
-                              ?.copyWith(
-                                color: Colors.white.withValues(alpha: 0.68),
-                              ),
+                              ?.copyWith(color: palette.textMuted),
                         ),
                         const SizedBox(height: 22),
                         Container(
                           padding: const EdgeInsets.all(18),
                           decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.04),
+                            color: palette.surface.withValues(alpha: 0.9),
                             borderRadius: BorderRadius.circular(26),
                           ),
                           child: Column(
@@ -105,14 +111,14 @@ class NowPlayingView extends StatelessWidget {
                                 progress: playback.position,
                                 buffered: playback.position,
                                 total: playback.duration,
-                                baseBarColor: Colors.white.withValues(
-                                  alpha: 0.08,
+                                baseBarColor: palette.secondary.withValues(
+                                  alpha: 0.12,
                                 ),
                                 progressBarColor: accentColor,
                                 thumbColor: accentColor,
                                 onSeek: playback.seek,
                                 timeLabelTextStyle: TextStyle(
-                                  color: Colors.white.withValues(alpha: 0.75),
+                                  color: palette.textMuted,
                                 ),
                               ),
                               const SizedBox(height: 8),
@@ -137,7 +143,7 @@ class NowPlayingView extends StatelessWidget {
                                 Icons.shuffle_rounded,
                                 color: playback.shuffleEnabled
                                     ? accentColor
-                                    : Colors.white,
+                                    : palette.textMuted,
                               ),
                             ),
                             IconButton(
@@ -179,7 +185,7 @@ class NowPlayingView extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.all(18),
                           decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.04),
+                            color: palette.surface.withValues(alpha: 0.9),
                             borderRadius: BorderRadius.circular(22),
                           ),
                           child: Column(
@@ -193,6 +199,7 @@ class NowPlayingView extends StatelessWidget {
                               const SizedBox(height: 8),
                               Text(
                                 'Queue position, progress and shuffle mode are stored locally in SQLite for ${playback.source.label.toLowerCase()} playback.',
+                                style: TextStyle(color: palette.textMuted),
                               ),
                               const SizedBox(height: 14),
                               Text(

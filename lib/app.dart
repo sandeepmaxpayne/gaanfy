@@ -10,6 +10,7 @@ import 'services/online_music_service.dart';
 import 'viewmodels/auth_view_model.dart';
 import 'viewmodels/offline_music_view_model.dart';
 import 'viewmodels/online_music_view_model.dart';
+import 'viewmodels/theme_view_model.dart';
 
 class GaanfyApp extends StatelessWidget {
   const GaanfyApp({super.key});
@@ -38,12 +39,19 @@ class GaanfyApp extends StatelessWidget {
             databaseService: databaseService,
           )..initialize(),
         ),
+        ChangeNotifierProvider(create: (_) => ThemeViewModel()..initialize()),
       ],
-      child: MaterialApp.router(
-        title: 'Gaanfy',
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.darkTheme,
-        routerConfig: AppRouter.router,
+      child: Consumer<ThemeViewModel>(
+        builder: (context, themeVm, _) {
+          return MaterialApp.router(
+            title: 'Gaanfy',
+            debugShowCheckedModeBanner: false,
+            theme: AppTheme.lightTheme,
+            darkTheme: AppTheme.darkTheme,
+            themeMode: themeVm.themeMode,
+            routerConfig: AppRouter.router,
+          );
+        },
       ),
     );
   }
