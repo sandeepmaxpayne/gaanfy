@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../core/enums/playback_source.dart';
+import '../core/theme/app_layout.dart';
 import '../core/theme/app_theme.dart';
 import '../services/playback_service.dart';
 
@@ -17,6 +18,8 @@ class MiniPlayer extends StatelessWidget {
       builder: (context, _) {
         final song = playback.currentSong;
         final palette = AppTheme.paletteOf(context);
+        final isApple = AppLayout.isApple(context);
+        final isWide = AppLayout.isTablet(context);
         if (song == null) {
           return const SizedBox.shrink();
         }
@@ -24,56 +27,54 @@ class MiniPlayer extends StatelessWidget {
         final progress = playback.duration.inMilliseconds == 0
             ? 0.0
             : playback.position.inMilliseconds /
-                  playback.duration.inMilliseconds;
+                playback.duration.inMilliseconds;
 
         return Container(
-          margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+          margin: EdgeInsets.fromLTRB(isWide ? 0 : 16, 0, isWide ? 0 : 16, 12),
           decoration: BoxDecoration(
-            color: palette.surface.withValues(alpha: 0.96),
-            borderRadius: BorderRadius.circular(22),
+            color: palette.surface.withValues(alpha: isApple ? 0.42 : 0.36),
+            borderRadius: BorderRadius.circular(isApple ? 28 : 22),
             border: Border.all(
-              color: palette.secondary.withValues(alpha: 0.12),
+              color: palette.glow.withValues(alpha: 0.44),
             ),
             boxShadow: [
               BoxShadow(
-                color: palette.primaryDeep.withValues(alpha: 0.22),
-                blurRadius: 22,
-                offset: const Offset(0, 12),
+                color: palette.primary.withValues(alpha: 0.14),
+                blurRadius: 24,
+                offset: const Offset(0, 14),
               ),
             ],
           ),
           child: Material(
             color: Colors.transparent,
             child: InkWell(
-              borderRadius: BorderRadius.circular(22),
+              borderRadius: BorderRadius.circular(isApple ? 28 : 22),
               onTap: onTap,
               child: Padding(
-                padding: const EdgeInsets.all(14),
+                padding: EdgeInsets.all(isApple ? 18 : 14),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     LinearProgressIndicator(
                       value: progress.clamp(0.0, 1.0),
                       minHeight: 3,
-                      backgroundColor: palette.secondary.withValues(
-                        alpha: 0.08,
-                      ),
+                      backgroundColor: palette.secondary.withValues(alpha: 0.08),
                       valueColor: AlwaysStoppedAnimation<Color>(
-                        song.isOffline ? palette.secondary : palette.accent,
+                        song.isOffline ? palette.secondary : palette.primary,
                       ),
                     ),
                     const SizedBox(height: 12),
                     Row(
                       children: [
                         Container(
-                          width: 48,
-                          height: 48,
+                          width: 52,
+                          height: 52,
                           decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(14),
+                            borderRadius: BorderRadius.circular(18),
                             gradient: LinearGradient(
                               colors: song.isOffline
                                   ? [palette.primary, palette.secondary]
-                                  : [palette.accent, palette.accentSoft],
+                                  : [palette.accent, palette.primary],
                             ),
                           ),
                           child: Icon(
@@ -92,17 +93,33 @@ class MiniPlayer extends StatelessWidget {
                                 song.title,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w700,
-                                ),
+                                style: Theme.of(context).textTheme.titleMedium
+                                    ?.copyWith(fontWeight: FontWeight.w800),
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                '${song.artist} • ${playback.source.label}',
+                                '${song.artist} - ${playback.source.label}',
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: TextStyle(color: palette.textMuted),
                               ),
+                              if (song.sourceLabel != null &&
+                                  playback.source == PlaybackSource.online)
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 4),
+                                  child: Text(
+                                    'Primary source: ${song.sourceLabel}',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .labelSmall
+                                        ?.copyWith(
+                                          color: palette.primary,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                  ),
+                                ),
                             ],
                           ),
                         ),
@@ -112,10 +129,10 @@ class MiniPlayer extends StatelessWidget {
                             playback.isPlaying
                                 ? Icons.pause_circle_rounded
                                 : Icons.play_circle_rounded,
-                            size: 34,
+                            size: isApple ? 36 : 34,
                             color: song.isOffline
                                 ? palette.secondary
-                                : palette.accent,
+                                : palette.primary,
                           ),
                         ),
                       ],

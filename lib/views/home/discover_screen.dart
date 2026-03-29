@@ -22,7 +22,7 @@ class DiscoverScreen extends StatelessWidget {
             padding: const EdgeInsets.only(top: 10, bottom: 20),
             children: [
               Text(
-                'Discover',
+                'Your Music Library',
                 style: Theme.of(context).textTheme.displaySmall?.copyWith(
                   fontWeight: FontWeight.w800,
                   letterSpacing: -2,
@@ -30,7 +30,7 @@ class DiscoverScreen extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                'Realtime search blends multiple free music APIs so playback can fall back when one provider slows down.',
+                'Curated playlists, soft glass layers, and bright listening rooms inspired by a futuristic music studio.',
                 style: Theme.of(
                   context,
                 ).textTheme.bodyLarge?.copyWith(color: palette.textMuted),
@@ -79,17 +79,22 @@ class _BlendCard extends StatelessWidget {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(28),
         gradient: LinearGradient(
-          colors: [palette.accentSoft, palette.accent, palette.primaryDeep],
+          colors: [
+            palette.accent.withValues(alpha: 0.86),
+            palette.primary.withValues(alpha: 0.84),
+            palette.accentSoft.withValues(alpha: 0.8),
+          ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         boxShadow: [
           BoxShadow(
-            color: palette.accent.withValues(alpha: 0.2),
+            color: palette.primary.withValues(alpha: 0.2),
             blurRadius: 26,
             offset: const Offset(0, 16),
           ),
         ],
+        border: Border.all(color: palette.glow.withValues(alpha: 0.34)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -103,16 +108,16 @@ class _BlendCard extends StatelessWidget {
             child: Text(
               'Unique Mode',
               style: TextStyle(
-                color: palette.primaryDeep,
+                color: Colors.white,
                 fontWeight: FontWeight.w700,
               ),
             ),
           ),
           const SizedBox(height: 14),
           Text(
-            'Mood blend',
+            'Discover weekly',
             style: TextStyle(
-              color: palette.primaryDeep,
+              color: Colors.white,
               fontSize: 28,
               fontWeight: FontWeight.w800,
             ),
@@ -120,10 +125,10 @@ class _BlendCard extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             currentSong == null
-                ? 'Jump into weekly charts, fresh finds, and resilient backup streams with saved resume points.'
+                ? 'Original slow instrumental best playlists, glowing blends, and elegant browsing in one ambient hub.'
                 : 'Resume your last stream from ${currentSong!.title} instantly.',
             style: TextStyle(
-              color: palette.primaryDeep.withValues(alpha: 0.88),
+              color: Colors.white.withValues(alpha: 0.84),
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -155,7 +160,7 @@ class _SearchResults extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Search results with source failover',
+          'Search results',
           style: Theme.of(
             context,
           ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
@@ -226,11 +231,18 @@ class _SectionBlock extends StatelessWidget {
                     width: 170,
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
-                      color: palette.surface.withValues(alpha: 0.9),
+                      color: palette.surface.withValues(alpha: 0.34),
                       borderRadius: BorderRadius.circular(24),
                       border: Border.all(
-                        color: palette.secondary.withValues(alpha: 0.08),
+                        color: palette.glow.withValues(alpha: 0.44),
                       ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: palette.primary.withValues(alpha: 0.1),
+                          blurRadius: 18,
+                          offset: const Offset(0, 10),
+                        ),
+                      ],
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
