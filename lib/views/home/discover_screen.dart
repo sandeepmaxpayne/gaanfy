@@ -30,7 +30,7 @@ class DiscoverScreen extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                'Free streaming demo from public song previews, plus checkpointed resume when you come back.',
+                'Realtime search blends multiple free music APIs so playback can fall back when one provider slows down.',
                 style: Theme.of(
                   context,
                 ).textTheme.bodyLarge?.copyWith(color: palette.textMuted),
@@ -120,7 +120,7 @@ class _BlendCard extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             currentSong == null
-                ? 'Jump into curated online previews and keep your exact position saved in SQLite.'
+                ? 'Jump into weekly charts, fresh finds, and resilient backup streams with saved resume points.'
                 : 'Resume your last stream from ${currentSong!.title} instantly.',
             style: TextStyle(
               color: palette.primaryDeep.withValues(alpha: 0.88),
@@ -155,7 +155,7 @@ class _SearchResults extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Search results',
+          'Search results with source failover',
           style: Theme.of(
             context,
           ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
@@ -280,7 +280,7 @@ class _SectionBlock extends StatelessWidget {
                             const SizedBox(width: 6),
                             Expanded(
                               child: Text(
-                                song.genre ?? 'Online',
+                                song.sourceLabel ?? song.genre ?? 'Online',
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),

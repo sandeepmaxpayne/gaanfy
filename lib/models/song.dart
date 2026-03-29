@@ -10,6 +10,10 @@ class Song {
     this.filePath,
     this.durationMs,
     this.genre,
+    this.sourceLabel,
+    this.backupStreamUrls = const [],
+    this.releaseDate,
+    this.externalUrl,
   });
 
   final String id;
@@ -22,6 +26,10 @@ class Song {
   final int? durationMs;
   final bool isOffline;
   final String? genre;
+  final String? sourceLabel;
+  final List<String> backupStreamUrls;
+  final String? releaseDate;
+  final String? externalUrl;
 
   Duration get duration =>
       Duration(milliseconds: durationMs == null ? 0 : durationMs!);
@@ -45,10 +53,15 @@ class Song {
       'durationMs': durationMs,
       'isOffline': isOffline,
       'genre': genre,
+      'sourceLabel': sourceLabel,
+      'backupStreamUrls': backupStreamUrls,
+      'releaseDate': releaseDate,
+      'externalUrl': externalUrl,
     };
   }
 
   factory Song.fromMap(Map<String, dynamic> map) {
+    final backupUrls = map['backupStreamUrls'];
     return Song(
       id: map['id'] as String? ?? '',
       title: map['title'] as String? ?? 'Unknown Track',
@@ -60,6 +73,12 @@ class Song {
       durationMs: map['durationMs'] as int?,
       isOffline: map['isOffline'] as bool? ?? false,
       genre: map['genre'] as String?,
+      sourceLabel: map['sourceLabel'] as String?,
+      backupStreamUrls: backupUrls is List
+          ? backupUrls.whereType<String>().toList()
+          : const [],
+      releaseDate: map['releaseDate'] as String?,
+      externalUrl: map['externalUrl'] as String?,
     );
   }
 }

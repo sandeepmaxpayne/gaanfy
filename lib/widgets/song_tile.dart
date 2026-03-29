@@ -48,11 +48,28 @@ class SongTile extends StatelessWidget {
       ),
       trailing:
           trailing ??
-          Icon(
-            song.isOffline
-                ? Icons.folder_rounded
-                : Icons.play_circle_fill_rounded,
-            color: song.isOffline ? palette.secondary : palette.accent,
+          Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Icon(
+                song.isOffline
+                    ? Icons.folder_rounded
+                    : Icons.play_circle_fill_rounded,
+                color: song.isOffline ? palette.secondary : palette.accent,
+              ),
+              if (!song.isOffline && song.sourceLabel != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: Text(
+                    song.sourceLabel!,
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color: palette.textMuted,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+            ],
           ),
     );
   }

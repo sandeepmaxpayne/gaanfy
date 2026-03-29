@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 
 import '../core/enums/playback_source.dart';
@@ -26,6 +28,7 @@ class OnlineMusicViewModel extends ChangeNotifier {
   List<Song> _searchResults = const [];
   bool _isLoading = false;
   String _query = '';
+  Timer? _searchDebounce;
 
   List<MusicSection> get sections => _sections;
   List<Song> get searchResults => _searchResults;
@@ -49,18 +52,32 @@ class OnlineMusicViewModel extends ChangeNotifier {
 
   Future<void> search(String value) async {
     _query = value;
+    _searchDebounce?.cancel();
     if (value.trim().isEmpty) {
       _searchResults = const [];
+      _isLoading = false;
       notifyListeners();
       return;
     }
 
-    _isLoading = true;
-    notifyListeners();
+    _searchDebounce = Timer(const Duration(milliseconds: 280), () async {
+      _isLoading = true;
+      notifyListeners();
 
-    _searchResults = await _musicService.searchSongs(value);
-    _isLoading = false;
-    notifyListeners();
+      final queryAtDispatch = _query;
+      final results = await _musicService.searchSongs(value);
+      if (queryAtDispatch != _query) {
+        if (_query.trim().isEmpty) {
+          _isLoading = false;
+          notifyListeners();
+        }
+        return;
+      }
+
+      _searchResults = results;
+      _isLoading = false;
+      notifyListeners();
+    });
   }
 
   Future<void> playFromSection(List<Song> songs, Song selectedSong) async {
@@ -72,6 +89,7 @@ class OnlineMusicViewModel extends ChangeNotifier {
 
   @override
   void dispose() {
+    _searchDebounce?.cancel();
     playback.removeListener(notifyListeners);
     playback.dispose();
     super.dispose();
