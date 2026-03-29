@@ -1,4 +1,4 @@
-package com.appruloft.gaanfy.gaanfy
+package com.appruloft.gannfy
 
 import io.flutter.embedding.android.FlutterActivity
 

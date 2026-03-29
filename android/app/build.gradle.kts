@@ -21,7 +21,7 @@ dependencies {
 }
 
 android {
-    namespace = "com.appruloft.gaanfy.gaanfy"
+    namespace = "com.appruloft.gannfy"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -36,7 +36,7 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.appruloft.gaanfy.gaanfy"
+        applicationId = "com.appruloft.gannfy"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion

@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math';
 
+import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
@@ -13,6 +15,9 @@ class OnlineMusicService {
     String? spotifyClientId,
     String? spotifyClientSecret,
     String? jamendoClientId,
+    String? audiomackConsumerKey,
+    String? audiomackConsumerSecret,
+    String? tasteDiveApiKey,
   }) : _client = client ?? http.Client(),
        _spotifyClientId =
            spotifyClientId ?? const String.fromEnvironment('SPOTIFY_CLIENT_ID'),
@@ -20,18 +25,36 @@ class OnlineMusicService {
            spotifyClientSecret ??
            const String.fromEnvironment('SPOTIFY_CLIENT_SECRET'),
        _jamendoClientId =
-           jamendoClientId ?? const String.fromEnvironment('JAMENDO_CLIENT_ID');
+           jamendoClientId ?? const String.fromEnvironment('JAMENDO_CLIENT_ID'),
+       _audiomackConsumerKey =
+           audiomackConsumerKey ??
+           const String.fromEnvironment('AUDIOMACK_CONSUMER_KEY'),
+       _audiomackConsumerSecret =
+           audiomackConsumerSecret ??
+           const String.fromEnvironment('AUDIOMACK_CONSUMER_SECRET'),
+       _tasteDiveApiKey =
+           tasteDiveApiKey ??
+           const String.fromEnvironment(
+             'TASTEDIVE_API_KEY',
+             defaultValue: '1070762-gaanfy-70FAD231',
+           );
 
   final http.Client _client;
   final String _spotifyClientId;
   final String _spotifyClientSecret;
   final String _jamendoClientId;
+  final String _audiomackConsumerKey;
+  final String _audiomackConsumerSecret;
+  final String _tasteDiveApiKey;
 
   static const _itunesHost = 'itunes.apple.com';
+  static const _audiomackBaseUrl = 'https://api.audiomack.com';
   static const _audiusBaseUrl = 'https://api.audius.co/v1';
   static const _jamendoHost = 'api.jamendo.com';
+  static const _tasteDiveHost = 'tastedive.com';
   static const _requestTimeout = Duration(seconds: 6);
   static const _sourceWeights = <String, double>{
+    'Audiomack Full': 1.14,
     'iTunes Preview': 1.0,
     'Audius': 0.9,
     'Jamendo': 0.82,
@@ -82,6 +105,7 @@ class OnlineMusicService {
   Future<List<Song>> _fetchFreshSongs({required int limit}) async {
     final now = DateTime.now();
     final releases = await Future.wait([
+      _fetchAudiomackTrending(limit: limit),
       _fetchAudiusTrending(limit: limit),
       _searchItunes('new music friday ${now.year}', limit: limit),
       _searchItunes('top songs ${now.year}', limit: limit),
@@ -98,15 +122,51 @@ class OnlineMusicService {
   }
 
   Future<List<Song>> _aggregateSearch(String query, {required int limit}) async {
+    final expandedQueries = await _buildSearchQueries(query);
+    final perQueryLimit = max(6, (limit / max(1, expandedQueries.length)).ceil());
+    final providers = await Future.wait(
+      expandedQueries.map(
+        (term) => _searchAcrossPlayableProviders(term, limit: perQueryLimit),
+      ),
+    );
+
+    final combined = providers.expand((songs) => songs).toList();
+    final enriched = await _enrichWithSpotifyMetadataIfAvailable(combined);
+    return _mergeAndRankSongs(enriched, query: query, limit: limit);
+  }
+
+  Future<List<Song>> _searchAcrossPlayableProviders(
+    String query, {
+    required int limit,
+  }) async {
     final providers = await Future.wait([
+      _searchAudiomack(query, limit: limit),
       _searchItunes(query, limit: limit),
       _searchAudius(query, limit: limit),
       _searchJamendo(query, limit: limit),
     ]);
 
-    final combined = providers.expand((songs) => songs).toList();
-    final enriched = await _enrichWithSpotifyMetadataIfAvailable(combined);
-    return _mergeAndRankSongs(enriched, query: query, limit: limit);
+    return providers.expand((songs) => songs).toList(growable: false);
+  }
+
+  Future<List<String>> _buildSearchQueries(String query) async {
+    final relatedTerms = await _fetchTasteDiveRelatedTerms(query);
+    final terms = <String>[query, ...relatedTerms];
+    final unique = <String>[];
+    final seen = <String>{};
+
+    for (final term in terms) {
+      final normalized = _normalize(term);
+      if (normalized.isEmpty || !seen.add(normalized)) {
+        continue;
+      }
+      unique.add(term);
+      if (unique.length >= 4) {
+        break;
+      }
+    }
+
+    return unique;
   }
 
   Future<List<Song>> _searchItunes(String query, {required int limit}) async {
@@ -147,6 +207,91 @@ class OnlineMusicService {
               ))
           .toList();
     });
+  }
+
+  Future<List<Song>> _searchAudiomack(String query, {required int limit}) async {
+    if (!_hasAudiomackCredentials) {
+      return const [];
+    }
+
+    return _guardedRequest(() async {
+      final response = await _signedAudiomackRequest(
+        method: 'GET',
+        path: '/search',
+        queryParameters: {
+          'q': query,
+          'show': 'songs',
+          'limit': '$limit',
+        },
+      );
+      if (response.statusCode != 200) {
+        return const [];
+      }
+
+      final decoded = jsonDecode(response.body) as Map<String, dynamic>;
+      final items =
+          (decoded['results'] as List<dynamic>? ?? const [])
+              .whereType<Map<String, dynamic>>()
+              .toList(growable: false);
+      return _hydrateAudiomackSongs(items, limit: limit);
+    });
+  }
+
+  Future<List<Song>> _fetchAudiomackTrending({required int limit}) async {
+    if (!_hasAudiomackCredentials) {
+      return const [];
+    }
+
+    return _guardedRequest(() async {
+      final response = await _signedAudiomackRequest(
+        method: 'GET',
+        path: '/v1/music/trending',
+        queryParameters: {'limit': '$limit'},
+      );
+      if (response.statusCode != 200) {
+        return const [];
+      }
+
+      final decoded = jsonDecode(response.body) as Map<String, dynamic>;
+      final items =
+          (decoded['results'] as List<dynamic>? ?? const [])
+              .whereType<Map<String, dynamic>>()
+              .toList(growable: false);
+      return _hydrateAudiomackSongs(items, limit: limit);
+    });
+  }
+
+  Future<List<String>> _fetchTasteDiveRelatedTerms(String query) async {
+    final apiKey = _tasteDiveApiKey.trim();
+    if (apiKey.isEmpty) {
+      return const [];
+    }
+
+    final uri = Uri.https(_tasteDiveHost, '/api/similar', {
+      'q': query,
+      'type': 'music',
+      'limit': '3',
+      'info': '0',
+      'k': apiKey,
+    });
+
+    final response = await _guardedRawRequest(
+      () => _client.get(uri).timeout(_requestTimeout),
+    );
+    if (response == null || response.statusCode != 200) {
+      return const [];
+    }
+
+    final decoded = jsonDecode(response.body) as Map<String, dynamic>;
+    final similar = decoded['Similar'] as Map<String, dynamic>?;
+    final results = (similar?['Results'] as List<dynamic>? ?? const [])
+        .whereType<Map<String, dynamic>>();
+
+    return results
+        .map((item) => _stringValue(item['Name']))
+        .whereType<String>()
+        .where((name) => name.isNotEmpty)
+        .toList(growable: false);
   }
 
   Future<List<Song>> _fetchAudiusTrending({required int limit}) async {
@@ -237,6 +382,66 @@ class OnlineMusicService {
       externalUrl: item['permalink'] == null
           ? null
           : 'https://audius.co${item['permalink']}',
+    );
+  }
+
+  Future<List<Song>> _hydrateAudiomackSongs(
+    List<Map<String, dynamic>> items, {
+    required int limit,
+  }) async {
+    final songs = <Song>[];
+    for (final item in items.take(limit)) {
+      final song = await _mapAudiomackTrack(item);
+      if (song != null) {
+        songs.add(song);
+      }
+    }
+    return songs;
+  }
+
+  Future<Song?> _mapAudiomackTrack(Map<String, dynamic> item) async {
+    final id = _stringValue(item['id']);
+    if (id == null || id.isEmpty) {
+      return null;
+    }
+
+    final playResponse = await _signedAudiomackRequest(
+      method: 'POST',
+      path: '/v1/music/$id/play',
+      bodyParameters: const {'hq': 'true'},
+    );
+    if (playResponse.statusCode != 200) {
+      return null;
+    }
+
+    final streamUrl = _extractAudiomackStreamUrl(playResponse.body);
+    if (streamUrl == null || streamUrl.isEmpty) {
+      return null;
+    }
+
+    final artistData = item['artist'] as Map<String, dynamic>?;
+    final albumData = item['album'] as Map<String, dynamic>?;
+
+    return Song(
+      id: 'audiomack-$id',
+      title: _stringValue(item['title']) ?? 'Unknown Track',
+      artist:
+          _stringValue(artistData?['name']) ??
+          _stringValue(item['artist']) ??
+          'Unknown Artist',
+      album:
+          _stringValue(albumData?['title']) ??
+          _stringValue(item['album']) ??
+          '',
+      streamUrl: streamUrl,
+      artworkUrl: _stringValue(item['image']),
+      filePath: null,
+      durationMs: _parseDurationMs(item['duration']),
+      isOffline: false,
+      genre: _stringValue(item['genre']),
+      sourceLabel: 'Audiomack Full',
+      releaseDate: _audiomackReleaseDate(item),
+      externalUrl: _stringValue(item['url']),
     );
   }
 
@@ -596,6 +801,167 @@ class OnlineMusicService {
       return null;
     }
     return genres.toString();
+  }
+
+  String? _stringValue(Object? value) {
+    if (value == null) {
+      return null;
+    }
+    if (value is String) {
+      final trimmed = value.trim();
+      return trimmed.isEmpty ? null : trimmed;
+    }
+    return value.toString().trim().isEmpty ? null : value.toString().trim();
+  }
+
+  int? _parseDurationMs(Object? value) {
+    if (value == null) {
+      return null;
+    }
+    final raw = num.tryParse(value.toString());
+    if (raw == null || raw <= 0) {
+      return null;
+    }
+
+    if (raw > 10000) {
+      return raw.round();
+    }
+    return (raw * 1000).round();
+  }
+
+  bool get _hasAudiomackCredentials =>
+      _audiomackConsumerKey.isNotEmpty && _audiomackConsumerSecret.isNotEmpty;
+
+  Future<http.Response> _signedAudiomackRequest({
+    required String method,
+    required String path,
+    Map<String, String> queryParameters = const {},
+    Map<String, String> bodyParameters = const {},
+  }) async {
+    final timestamp =
+        (DateTime.now().millisecondsSinceEpoch ~/ 1000).toString();
+    final oauthParams = <String, String>{
+      'oauth_consumer_key': _audiomackConsumerKey,
+      'oauth_nonce': _randomNonce(),
+      'oauth_signature_method': 'HMAC-SHA1',
+      'oauth_timestamp': timestamp,
+      'oauth_version': '1.0',
+    };
+
+    final allParams = <String, String>{
+      ...queryParameters,
+      ...bodyParameters,
+      ...oauthParams,
+    };
+
+    final uri = Uri.parse('$_audiomackBaseUrl$path').replace(
+      queryParameters: queryParameters.isEmpty ? null : queryParameters,
+    );
+    final signatureBase = _signatureBaseString(method, uri, allParams);
+    final signingKey = '${_oauthEncode(_audiomackConsumerSecret)}&';
+    final digest = Hmac(
+      sha1,
+      utf8.encode(signingKey),
+    ).convert(utf8.encode(signatureBase));
+    oauthParams['oauth_signature'] = base64Encode(digest.bytes);
+
+    final authorization = _oauthAuthorizationHeader(oauthParams);
+    final headers = <String, String>{'Authorization': authorization};
+
+    if (method.toUpperCase() == 'POST') {
+      headers['Content-Type'] = 'application/x-www-form-urlencoded';
+      return _client
+          .post(uri, headers: headers, body: bodyParameters)
+          .timeout(_requestTimeout);
+    }
+
+    return _client.get(uri, headers: headers).timeout(_requestTimeout);
+  }
+
+  String _signatureBaseString(
+    String method,
+    Uri uri,
+    Map<String, String> parameters,
+  ) {
+    final normalized = parameters.entries.toList()
+      ..sort((left, right) {
+        final keyCompare = left.key.compareTo(right.key);
+        if (keyCompare != 0) {
+          return keyCompare;
+        }
+        return left.value.compareTo(right.value);
+      });
+
+    final parameterString = normalized
+        .map((entry) => '${_oauthEncode(entry.key)}=${_oauthEncode(entry.value)}')
+        .join('&');
+    final baseUri = uri.replace(query: '', fragment: '');
+    return [
+      method.toUpperCase(),
+      _oauthEncode(baseUri.toString()),
+      _oauthEncode(parameterString),
+    ].join('&');
+  }
+
+  String _oauthAuthorizationHeader(Map<String, String> oauthParams) {
+    final parts = oauthParams.entries.toList()
+      ..sort((left, right) => left.key.compareTo(right.key));
+    return 'OAuth ${parts.map((entry) => '${_oauthEncode(entry.key)}="${_oauthEncode(entry.value)}"').join(', ')}';
+  }
+
+  String _oauthEncode(String value) {
+    return Uri.encodeQueryComponent(value)
+        .replaceAll('+', '%20')
+        .replaceAll('*', '%2A')
+        .replaceAll('%7E', '~');
+  }
+
+  String _randomNonce() {
+    const chars =
+        'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    final random = Random.secure();
+    return List.generate(
+      24,
+      (_) => chars[random.nextInt(chars.length)],
+    ).join();
+  }
+
+  String? _extractAudiomackStreamUrl(String body) {
+    final trimmed = body.trim();
+    if (trimmed.isEmpty) {
+      return null;
+    }
+
+    try {
+      final decoded = jsonDecode(trimmed);
+      if (decoded is String) {
+        return decoded;
+      }
+      if (decoded is Map<String, dynamic>) {
+        return _stringValue(decoded['url']) ?? _stringValue(decoded['results']);
+      }
+    } catch (_) {
+      if (trimmed.startsWith('http')) {
+        return trimmed;
+      }
+    }
+
+    return null;
+  }
+
+  String? _audiomackReleaseDate(Map<String, dynamic> item) {
+    final updated = _stringValue(item['updated']);
+    if (updated == null) {
+      return null;
+    }
+    final unixSeconds = int.tryParse(updated);
+    if (unixSeconds == null) {
+      return updated;
+    }
+    return DateTime.fromMillisecondsSinceEpoch(
+      unixSeconds * 1000,
+      isUtc: true,
+    ).toIso8601String();
   }
 
   Future<List<Song>> _guardedRequest(

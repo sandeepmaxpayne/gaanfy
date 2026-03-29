@@ -38,7 +38,7 @@ class Song {
     if (album.isEmpty) {
       return artist;
     }
-    return '$artist • $album';
+    return '$artist - $album';
   }
 
   Map<String, Object?> toMap() {

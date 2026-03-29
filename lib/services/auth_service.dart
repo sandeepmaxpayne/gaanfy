@@ -38,10 +38,10 @@ class AuthService {
     final actionCodeSettings = ActionCodeSettings(
       url: _emailLinkUrl,
       handleCodeInApp: true,
-      androidPackageName: 'com.appruloft.gaanfy.gaanfy',
+      androidPackageName: 'com.appruloft.gannfy',
       androidInstallApp: true,
       androidMinimumVersion: '23',
-      iOSBundleId: 'com.appruloft.gaanfy',
+      iOSBundleId: 'com.appruloft.gaanfy.gaanfy',
     );
 
     await FirebaseAuth.instance.sendSignInLinkToEmail(
@@ -133,11 +133,14 @@ class AuthService {
     await googleSignIn.initialize();
     final account = await googleSignIn.authenticate();
     final authentication = account.authentication;
+    final idToken = authentication.idToken;
+    if (idToken == null || idToken.isEmpty) {
+      throw StateError(
+        'Google Sign-In completed, but no ID token was returned. Check the Google/Firebase app configuration for this platform.',
+      );
+    }
 
-    final credential = GoogleAuthProvider.credential(
-      accessToken: authentication.idToken,
-      idToken: authentication.idToken,
-    );
+    final credential = GoogleAuthProvider.credential(idToken: idToken);
 
     final userCredential = await FirebaseAuth.instance.signInWithCredential(
       credential,
@@ -226,7 +229,8 @@ class AuthService {
   void _ensureReady() {
     if (!isFirebaseReady) {
       throw StateError(
-        'Firebase is not configured yet. Add google-services.json and GoogleService-Info.plist, then restart the app.',
+        _bootstrap.errorMessage ??
+            'Firebase is not configured yet. Add the platform Firebase app files and restart the app.',
       );
     }
   }
