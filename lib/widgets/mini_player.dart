@@ -18,6 +18,7 @@ class MiniPlayer extends StatelessWidget {
       builder: (context, _) {
         final song = playback.currentSong;
         final palette = AppTheme.paletteOf(context);
+        final isDark = Theme.of(context).brightness == Brightness.dark;
         final isApple = AppLayout.isApple(context);
         final isWide = AppLayout.isTablet(context);
         if (song == null) {
@@ -32,15 +33,19 @@ class MiniPlayer extends StatelessWidget {
         return Container(
           margin: EdgeInsets.fromLTRB(isWide ? 0 : 16, 0, isWide ? 0 : 16, 12),
           decoration: BoxDecoration(
-            color: palette.surface.withValues(alpha: isApple ? 0.42 : 0.36),
+            color: palette.surface.withValues(
+              alpha: isDark
+                  ? (isApple ? 0.86 : 0.92)
+                  : (isApple ? 0.42 : 0.36),
+            ),
             borderRadius: BorderRadius.circular(isApple ? 28 : 22),
             border: Border.all(
-              color: palette.glow.withValues(alpha: 0.44),
+              color: palette.glow.withValues(alpha: isDark ? 0.08 : 0.44),
             ),
             boxShadow: [
               BoxShadow(
-                color: palette.primary.withValues(alpha: 0.14),
-                blurRadius: 24,
+                color: palette.primary.withValues(alpha: isDark ? 0.22 : 0.14),
+                blurRadius: isDark ? 28 : 24,
                 offset: const Offset(0, 14),
               ),
             ],
@@ -115,7 +120,9 @@ class MiniPlayer extends StatelessWidget {
                                         .textTheme
                                         .labelSmall
                                         ?.copyWith(
-                                          color: palette.primary,
+                                          color: isDark
+                                              ? palette.accent
+                                              : palette.primary,
                                           fontWeight: FontWeight.w700,
                                         ),
                                   ),
@@ -132,7 +139,7 @@ class MiniPlayer extends StatelessWidget {
                             size: isApple ? 36 : 34,
                             color: song.isOffline
                                 ? palette.secondary
-                                : palette.primary,
+                                : (isDark ? palette.accent : palette.primary),
                           ),
                         ),
                       ],

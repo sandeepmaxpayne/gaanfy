@@ -29,17 +29,17 @@ class AppPalette extends ThemeExtension<AppPalette> {
   final Color glow;
 
   static const dark = AppPalette(
-    background: Color(0xFF091310),
-    backgroundAlt: Color(0xFF10211C),
-    surface: Color(0xFF11211D),
-    surfaceSoft: Color(0xFF183129),
-    primary: Color(0xFF436850),
-    primaryDeep: Color(0xFF12372A),
-    secondary: Color(0xFFADBC9F),
-    accent: Color(0xFFFB8B24),
-    accentSoft: Color(0xFFFFB347),
-    textMuted: Color(0xFF92A79A),
-    glow: Color(0xFFFBFADA),
+    background: Color(0xFF080618),
+    backgroundAlt: Color(0xFF130E2D),
+    surface: Color(0xFF110D24),
+    surfaceSoft: Color(0xFF191338),
+    primary: Color(0xFF6C57FF),
+    primaryDeep: Color(0xFF050313),
+    secondary: Color(0xFF9B8DDF),
+    accent: Color(0xFF7C66FF),
+    accentSoft: Color(0xFF5946E8),
+    textMuted: Color(0xFF9A93C9),
+    glow: Color(0xFFF4F1FF),
   );
 
   static const light = AppPalette(

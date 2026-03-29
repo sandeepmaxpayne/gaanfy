@@ -18,17 +18,20 @@ class SongTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final palette = AppTheme.paletteOf(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 6),
       decoration: BoxDecoration(
-        color: palette.surface.withValues(alpha: 0.34),
+        color: palette.surface.withValues(alpha: isDark ? 0.88 : 0.34),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: palette.glow.withValues(alpha: 0.44)),
+        border: Border.all(
+          color: palette.glow.withValues(alpha: isDark ? 0.08 : 0.44),
+        ),
         boxShadow: [
           BoxShadow(
-            color: palette.primary.withValues(alpha: 0.08),
-            blurRadius: 18,
+            color: palette.primary.withValues(alpha: isDark ? 0.14 : 0.08),
+            blurRadius: isDark ? 22 : 18,
             offset: const Offset(0, 10),
           ),
         ],
@@ -70,7 +73,9 @@ class SongTile extends StatelessWidget {
                   song.isOffline
                       ? Icons.folder_rounded
                       : Icons.play_circle_fill_rounded,
-                  color: song.isOffline ? palette.secondary : palette.primary,
+                  color: song.isOffline
+                      ? palette.secondary
+                      : (isDark ? palette.accent : palette.primary),
                 ),
                 if (!song.isOffline && song.sourceLabel != null)
                   Padding(

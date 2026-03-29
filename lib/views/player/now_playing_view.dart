@@ -274,18 +274,23 @@ class _PlayerCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final palette = AppTheme.paletteOf(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final isApple = AppLayout.isApple(context);
 
     return Container(
       padding: EdgeInsets.all(isApple ? 20 : 18),
       decoration: BoxDecoration(
-        color: palette.surface.withValues(alpha: isApple ? 0.82 : 0.9),
+        color: palette.surface.withValues(
+          alpha: isDark ? (isApple ? 0.9 : 0.94) : (isApple ? 0.82 : 0.9),
+        ),
         borderRadius: BorderRadius.circular(isApple ? 30 : 26),
-        border: Border.all(color: palette.glow.withValues(alpha: 0.44)),
+        border: Border.all(
+          color: palette.glow.withValues(alpha: isDark ? 0.08 : 0.44),
+        ),
         boxShadow: [
           BoxShadow(
-            color: palette.primary.withValues(alpha: 0.1),
-            blurRadius: 20,
+            color: palette.primary.withValues(alpha: isDark ? 0.18 : 0.1),
+            blurRadius: isDark ? 26 : 20,
             offset: const Offset(0, 10),
           ),
         ],

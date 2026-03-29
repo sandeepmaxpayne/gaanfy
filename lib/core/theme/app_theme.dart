@@ -73,49 +73,57 @@ class AppTheme {
       scaffoldBackgroundColor: palette.background,
       textTheme: textTheme,
       colorScheme: const ColorScheme.dark(
-        primary: Color(0xFF436850),
-        secondary: Color(0xFFADBC9F),
-        surface: Color(0xFF11211D),
+        primary: Color(0xFF6C57FF),
+        secondary: Color(0xFF9B8DDF),
+        surface: Color(0xFF110D24),
       ),
       extensions: const [palette],
       appBarTheme: AppBarTheme(
         backgroundColor: Colors.transparent,
         foregroundColor: palette.glow,
         surfaceTintColor: Colors.transparent,
+        titleTextStyle: textTheme.titleLarge?.copyWith(
+          color: palette.glow,
+          fontWeight: FontWeight.w700,
+        ),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: palette.surfaceSoft.withValues(alpha: 0.85),
+        fillColor: palette.surfaceSoft.withValues(alpha: 0.88),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(22),
           borderSide: BorderSide(
-            color: palette.secondary.withValues(alpha: 0.18),
+            color: palette.glow.withValues(alpha: 0.08),
           ),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(22),
           borderSide: BorderSide(
-            color: palette.secondary.withValues(alpha: 0.18),
+            color: palette.glow.withValues(alpha: 0.08),
           ),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(18),
-          borderSide: BorderSide(color: palette.accent),
+          borderRadius: BorderRadius.circular(22),
+          borderSide: BorderSide(color: palette.primary, width: 1.4),
         ),
+        prefixIconColor: palette.textMuted,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 18,
           vertical: 18,
         ),
       ),
       navigationBarTheme: NavigationBarThemeData(
-        backgroundColor: palette.surface,
-        indicatorColor: palette.primary.withValues(alpha: 0.26),
+        backgroundColor: palette.surface.withValues(alpha: 0.9),
+        surfaceTintColor: Colors.transparent,
+        indicatorColor: palette.primary.withValues(alpha: 0.16),
         labelTextStyle: WidgetStateProperty.resolveWith(
           (states) => textTheme.labelMedium?.copyWith(
             color: states.contains(WidgetState.selected)
                 ? palette.glow
                 : palette.textMuted,
-            fontWeight: FontWeight.w600,
+            fontWeight: states.contains(WidgetState.selected)
+                ? FontWeight.w700
+                : FontWeight.w600,
           ),
         ),
       ),

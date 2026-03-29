@@ -41,10 +41,12 @@ class AppBackground extends StatelessWidget {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
+                  const Color(0xFF080618),
                   palette.background,
-                  palette.primaryDeep.withValues(alpha: 0.94),
+                  const Color(0xFF171042),
                   palette.backgroundAlt,
                 ],
+                stops: const [0.0, 0.28, 0.68, 1.0],
               ),
       ),
       child: Stack(
@@ -59,7 +61,7 @@ class AppBackground extends StatelessWidget {
                   radius: 1.25,
                   colors: [
                     (isLight ? palette.primary : palette.accentSoft).withValues(
-                      alpha: isLight ? 0.18 : 0.12,
+                      alpha: isLight ? 0.18 : 0.22,
                     ),
                     Colors.transparent,
                   ],
@@ -67,6 +69,22 @@ class AppBackground extends StatelessWidget {
               ),
             ),
           ),
+          if (!isLight)
+            Positioned.fill(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      palette.primary.withValues(alpha: 0.1),
+                      Colors.transparent,
+                      palette.accentSoft.withValues(alpha: 0.08),
+                    ],
+                  ),
+                ),
+              ),
+            ),
           if (isLight)
             Positioned.fill(
               child: DecoratedBox(
@@ -88,9 +106,9 @@ class AppBackground extends StatelessWidget {
             right: isLight ? -10 : -40,
             child: _GlowOrb(
               color: (isLight ? palette.accent : palette.primary).withValues(
-                alpha: isLight ? 0.22 : 0.24,
+                alpha: isLight ? 0.22 : 0.32,
               ),
-              size: isLight ? 280 : 220,
+              size: isLight ? 280 : 260,
             ),
           ),
           Positioned(
@@ -98,9 +116,9 @@ class AppBackground extends StatelessWidget {
             left: isLight ? -30 : -60,
             child: _GlowOrb(
               color: (isLight ? palette.accentSoft : palette.accent).withValues(
-                alpha: isLight ? 0.28 : 0.16,
+                alpha: isLight ? 0.28 : 0.2,
               ),
-              size: isLight ? 320 : 260,
+              size: isLight ? 320 : 300,
             ),
           ),
           SafeArea(
@@ -125,14 +143,14 @@ class AppBackground extends StatelessWidget {
                                 color: palette.surface.withValues(
                                   alpha: isLight
                                       ? (isDesktop ? 0.3 : 0.18)
-                                      : (isDesktop ? 0.24 : 0.14),
+                                      : (isDesktop ? 0.42 : 0.26),
                                 ),
                                 borderRadius: BorderRadius.circular(
                                   isDesktop ? 38 : 30,
                                 ),
                                 border: Border.all(
                                   color: palette.glow.withValues(
-                                    alpha: isLight ? 0.44 : 0.08,
+                                    alpha: isLight ? 0.44 : 0.1,
                                   ),
                                 ),
                               ),
