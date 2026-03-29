@@ -65,7 +65,7 @@ class ProfileScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    auth.user?.email ?? 'Demo mode enabled',
+                    auth.user?.email ?? 'Anonymous Firebase account',
                     style: Theme.of(
                       context,
                     ).textTheme.bodyLarge?.copyWith(color: palette.textMuted),
@@ -146,7 +146,7 @@ class ProfileScreen extends StatelessWidget {
                   context.go('/login');
                 }
               },
-              child: Text(auth.isGuestMode ? 'Exit demo mode' : 'Sign out'),
+              child: Text(auth.isGuestMode ? 'Sign out anonymous user' : 'Sign out'),
             ),
           ],
         );

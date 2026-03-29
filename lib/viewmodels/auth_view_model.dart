@@ -16,18 +16,17 @@ class AuthViewModel extends ChangeNotifier {
 
   User? _user;
   bool _isBusy = false;
-  bool _guestMode = false;
   String? _error;
   String? _infoMessage;
 
   User? get user => _user;
   bool get isBusy => _isBusy;
-  bool get isGuestMode => _guestMode;
+  bool get isGuestMode => _user?.isAnonymous ?? false;
   bool get isFirebaseReady => _authService.isFirebaseReady;
   String? get error => _error ?? _authService.bootstrapError;
   String? get infoMessage => _infoMessage;
-  bool get isAuthenticated => _guestMode || _user != null;
-  String get displayName => _guestMode
+  bool get isAuthenticated => _user != null;
+  String get displayName => isGuestMode
       ? 'Guest Listener'
       : (_user?.displayName ?? _user?.email ?? 'Music Fan');
 
@@ -50,7 +49,6 @@ class AuthViewModel extends ChangeNotifier {
 
   Future<bool> sendLoginLink({required String email}) async {
     return _run(() async {
-      _guestMode = false;
       await _authService.sendSignInLink(email: email);
       _infoMessage =
           'Magic sign-in link sent to $email. Open it on this device to finish login.';
@@ -63,7 +61,6 @@ class AuthViewModel extends ChangeNotifier {
     required String email,
   }) async {
     return _run(() async {
-      _guestMode = false;
       await _authService.sendSignInLink(email: email, name: name);
       _infoMessage =
           'Sign-up link sent to $email. Open it on this device to create your account.';
@@ -73,7 +70,6 @@ class AuthViewModel extends ChangeNotifier {
 
   Future<bool> signInWithApple() async {
     return _run(() async {
-      _guestMode = false;
       await _authService.signInWithApple();
       _infoMessage = 'Signed in with Apple successfully.';
       return true;
@@ -82,7 +78,6 @@ class AuthViewModel extends ChangeNotifier {
 
   Future<bool> signInWithGoogle() async {
     return _run(() async {
-      _guestMode = false;
       await _authService.signInWithGoogle();
       _infoMessage = 'Signed in with Google successfully.';
       return true;
@@ -97,8 +92,7 @@ class AuthViewModel extends ChangeNotifier {
 
     try {
       await _authService.signInAnonymously();
-      _guestMode = true;
-      _infoMessage = 'Anonymous Firebase session started.';
+      _infoMessage = 'Signed in anonymously with Firebase.';
     } catch (error) {
       _error = error.toString().replaceFirst('Exception: ', '');
     } finally {
@@ -108,7 +102,6 @@ class AuthViewModel extends ChangeNotifier {
   }
 
   Future<void> signOut() async {
-    _guestMode = false;
     _error = null;
     _infoMessage = null;
     await _authService.signOut();

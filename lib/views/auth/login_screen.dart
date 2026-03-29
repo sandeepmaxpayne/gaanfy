@@ -162,7 +162,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 context.go('/home');
                               }
                             },
-                      child: const Text('Continue in demo mode'),
+                      child: const Text('Continue anonymously'),
                     ),
                     if (auth.infoMessage != null) ...[
                       const SizedBox(height: 10),
