@@ -59,7 +59,7 @@ class OfflineLibraryScreen extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            '${vm.songs.length} tracks found',
+                            '${vm.groups.length} collections • ${vm.songs.length} tracks',
                             style: const TextStyle(fontWeight: FontWeight.w800),
                           ),
                           const SizedBox(height: 4),
@@ -102,21 +102,104 @@ class OfflineLibraryScreen extends StatelessWidget {
                   ),
                 )
               else
-                ...vm.songs.map(
-                  (song) => SongTile(
-                    song: song,
-                    onTap: () async {
-                      await vm.playSong(song);
-                      if (context.mounted) {
-                        context.push('/offline-player');
-                      }
-                    },
-                  ),
+                ...vm.groups.map(
+                  (group) => _OfflineGroupCard(group: group),
                 ),
             ],
           ),
         );
       },
+    );
+  }
+}
+
+class _OfflineGroupCard extends StatelessWidget {
+  const _OfflineGroupCard({required this.group});
+
+  final OfflineSongGroup group;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = AppTheme.paletteOf(context);
+    final vm = context.read<OfflineMusicViewModel>();
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 14),
+      decoration: BoxDecoration(
+        color: palette.surface.withValues(alpha: 0.9),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: palette.glow.withValues(alpha: 0.18)),
+      ),
+      child: Theme(
+        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+        child: ExpansionTile(
+          tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          childrenPadding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+          leading: Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(18),
+              gradient: LinearGradient(
+                colors: group.isAlbumGroup
+                    ? [palette.primary, palette.accent]
+                    : [palette.secondary, palette.primary],
+              ),
+            ),
+            child: Icon(
+              group.isAlbumGroup
+                  ? Icons.album_rounded
+                  : Icons.library_music_rounded,
+              color: palette.primaryDeep,
+            ),
+          ),
+          title: Text(
+            group.title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w800,
+                ),
+          ),
+          subtitle: Padding(
+            padding: const EdgeInsets.only(top: 4),
+            child: Text(
+              group.subtitle,
+              style: TextStyle(color: palette.textMuted),
+            ),
+          ),
+          trailing: IconButton.filled(
+            onPressed: () async {
+              await vm.playGroup(group);
+              if (context.mounted) {
+                context.push('/offline-player');
+              }
+            },
+            style: IconButton.styleFrom(
+              backgroundColor: palette.primary,
+              foregroundColor: Colors.white,
+            ),
+            icon: const Icon(Icons.play_arrow_rounded),
+          ),
+          children: group.songs
+              .map(
+                (song) => SongTile(
+                  song: song,
+                  onTap: () async {
+                    await vm.playGroup(group, startWith: song);
+                    if (context.mounted) {
+                      context.push('/offline-player');
+                    }
+                  },
+                  trailing: Icon(
+                    Icons.play_circle_fill_rounded,
+                    color: palette.primary,
+                  ),
+                ),
+              )
+              .toList(growable: false),
+        ),
+      ),
     );
   }
 }
