@@ -46,6 +46,9 @@ app.*.map.json
 
 # Firebase local config
 /android/app/google-services.json
+.env
+.env.*
+*.local
 
 #release key
 gaanfy-release-key.jks

@@ -3,6 +3,43 @@ import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, kIsWeb, TargetPlatform;
 
 class DefaultFirebaseOptions {
+  static FirebaseOptions get web {
+    const apiKey = String.fromEnvironment('FIREBASE_WEB_API_KEY');
+    const appId = String.fromEnvironment('FIREBASE_WEB_APP_ID');
+    const messagingSenderId = String.fromEnvironment(
+      'FIREBASE_WEB_MESSAGING_SENDER_ID',
+    );
+    const projectId = String.fromEnvironment('FIREBASE_WEB_PROJECT_ID');
+    const authDomain = String.fromEnvironment('FIREBASE_WEB_AUTH_DOMAIN');
+    const storageBucket = String.fromEnvironment('FIREBASE_WEB_STORAGE_BUCKET');
+    const databaseUrl = String.fromEnvironment('FIREBASE_WEB_DATABASE_URL');
+    const measurementId = String.fromEnvironment('FIREBASE_WEB_MEASUREMENT_ID');
+
+    if (apiKey.isEmpty ||
+        appId.isEmpty ||
+        messagingSenderId.isEmpty ||
+        projectId.isEmpty ||
+        authDomain.isEmpty) {
+      throw UnsupportedError(
+        'Web Firebase is not configured. Provide FIREBASE_WEB_API_KEY, '
+        'FIREBASE_WEB_APP_ID, FIREBASE_WEB_MESSAGING_SENDER_ID, '
+        'FIREBASE_WEB_PROJECT_ID, and FIREBASE_WEB_AUTH_DOMAIN via '
+        '--dart-define.',
+      );
+    }
+
+    return FirebaseOptions(
+      apiKey: apiKey,
+      appId: appId,
+      messagingSenderId: messagingSenderId,
+      projectId: projectId,
+      authDomain: authDomain,
+      storageBucket: storageBucket.isEmpty ? null : storageBucket,
+      databaseURL: databaseUrl.isEmpty ? null : databaseUrl,
+      measurementId: measurementId.isEmpty ? null : measurementId,
+    );
+  }
+
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
       return web;
@@ -37,14 +74,4 @@ class DefaultFirebaseOptions {
     }
   }
 
-  static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyB5cveZbpDrwKJhgRamfQmvg1YqOHGFyM8',
-    appId: '1:974409267703:web:994a2331149455188f56f2',
-    messagingSenderId: '974409267703',
-    projectId: 'gannfy-5dba2',
-    authDomain: 'gannfy-5dba2.firebaseapp.com',
-    storageBucket: 'gannfy-5dba2.firebasestorage.app',
-    databaseURL: 'https://gannfy-5dba2-default-rtdb.firebaseio.com',
-    measurementId: 'G-VJNVJPCT6L',
-  );
 }

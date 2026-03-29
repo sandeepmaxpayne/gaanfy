@@ -34,10 +34,7 @@ class OnlineMusicService {
            const String.fromEnvironment('AUDIOMACK_CONSUMER_SECRET'),
        _tasteDiveApiKey =
            tasteDiveApiKey ??
-           const String.fromEnvironment(
-             'TASTEDIVE_API_KEY',
-             defaultValue: '1070762-gaanfy-70FAD231',
-           );
+           const String.fromEnvironment('TASTEDIVE_API_KEY');
 
   final http.Client _client;
   final String _spotifyClientId;
